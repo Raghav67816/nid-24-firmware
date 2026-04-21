@@ -1,0 +1,6 @@
+[wokwi]
+version = 1
+firmware = './.pio/build/uno/firmware.hex'
+gdbServerPort=3333
+elf = './.pio/build/uno/firmware.elf'
+rfc2217ServerPort = 4000
