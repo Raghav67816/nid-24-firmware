@@ -1,4 +1,5 @@
 #include <Wire.h>
+#include <string.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
@@ -25,6 +26,11 @@ Adafruit_SSD1306 display(
 // 2 -> ble devices
 
 int page_index = 0;
+
+// menu
+const char* items[] = {"DEVICES", "DISCONNECT", "BACK"};
+const int menu_item_spacing = 15;
+int active_item = 0;  // devices -> 0, disconnect -> 1, back -> 2
 
 void setup(){
     Serial.begin(9600);
@@ -53,43 +59,39 @@ void draw_home(){
     display.display();
 }
 
-void draw_menu(){
+void draw_menu(int active_item){
     display.clearDisplay();
-    display.setCursor(0, 10);
-    display.println("MENU ");
+    display.setCursor((SCREEN_WIDTH/2)-strlen("MENU"), 0);
+    display.fillRect(0, 0, SCREEN_WIDTH, 10, WHITE);
+    display.setTextColor(SSD1306_BLACK);
+    display.println("MENU");
+
+    int prev_y = 5; // padding
+    for (int i=0; i < strlen(*items); i++){
+        prev_y += menu_item_spacing;
+        display.setCursor(0, prev_y);
+
+        display.setTextColor(SSD1306_WHITE);
+        
+        if(i == active_item){
+            display.fillRect(0, prev_y, 
+            SCREEN_WIDTH, 10, SSD1306_WHITE);
+            display.setTextColor(SSD1306_BLACK);
+        }
+        display.println(items[i]);
+        display.setTextColor(SSD1306_WHITE);
+    }
     display.display();
 }
 
+
 void loop(){
-    int btn_ok = digitalRead(BTN_OK);
-    // int btn_up = digitalRead(BTN_UP);
-    // int btn_down = digitalRead(BTN_DOWN);
+    draw_menu(active_item);
 
-    if(btn_ok == LOW){
-        Serial.println("OK Cliked");
-        // is at home
-        if(page_index == 0){
-            page_index = 1;
-        }
+    if(active_item > 2) active_item = 0;
 
-        if(page_index == 1){
-            page_index = 0;
-        }
-    }
-
-    switch(page_index){
-
-        case 0:
-            draw_home();
-            break;
-
-        case 1:
-            draw_menu();
-            break;
-
-        default:
-            draw_home();
-            Serial.println("defualt");
-            break;
+    if(digitalRead(BTN_UP) == LOW){
+        Serial.println("Pressed");
+        active_item += 1;
     }
 }
