@@ -1,5 +1,6 @@
 #include <Wire.h>
 #include <Adafruit_SH110X.h>
+#include "esp_timer.h"
 
 #include "core/Stack.h"
 #include "core/Graphics.h"
@@ -40,6 +41,29 @@ Row temp_container(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT - 10);
 Label itemp_label(20, 10, "Temp: ", {255, 255, 255});
 Label temp_val(10, 10, "0", {255, 255, 255});
 
+Screen error_screen(
+  &display,
+  "Error"
+);
+Label error_val(DISPLAY_WIDTH - 10, 10, "ERROR", {255, 255, 255});
+
+char temp_buff[5];
+
+void update_temp(void* arg){
+  float temp = temperatureRead();
+  temp_val.setText(dtostrf(temp, 1, 2, temp_buff));
+}
+
+const esp_timer_create_args_t tpt_config = {
+  .callback = update_temp,
+  .arg = nullptr,
+  .dispatch_method = ESP_TIMER_TASK,
+  .name = "temp_proc_timer",
+  .skip_unhandled_events = true
+};
+
+esp_timer_handle_t temp_timer = NULL;
+
 void setup(){
   Serial.begin(115200);
   Wire.begin(SDA, SCK);
@@ -51,9 +75,18 @@ void setup(){
   home_screen.addChild(&root_layout);
 
   app.addScreen(home_screen);
+  app.addScreen(error_screen);
+
+  esp_err_t _ttemp = esp_timer_create(&tpt_config, &temp_timer);
+  esp_timer_start_periodic(temp_timer, 1000000);
   
   if(!oled.begin(0x3C, true)){
     while(1);
+  }
+
+  if(!esp_timer_init() == ESP_OK){
+    app.goTo(display, error_screen, gfx);
+    error_val.setText("ESP Timer Failed");
   }
 
   oled.setTextSize(2);
@@ -66,5 +99,6 @@ void setup(){
 
 void loop(){
   app.renderApp(gfx);
+
   display.flush();
 }
