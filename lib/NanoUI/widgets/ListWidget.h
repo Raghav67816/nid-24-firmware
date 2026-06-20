@@ -1,33 +1,26 @@
-#include <cstdio>
-#include <iostream>
+#pragma once
 
-#include "core/Widget.h"
 #include "layouts/Column.h"
+#include "widgets/ListItem.h"
 
-class ListWidget: public Widget{
+class ListWidget: public Column{
 
     private:
-    int offsetX = 0;
-    int offsetY = 0;
 
-    int focusedItem = 0;
+    std::function<void(ListItem *item)> _onCurrentItemChanged;
 
-    Column *col = nullptr;
+    int currentFocusedIndex = 0;
 
+    public:
+    ListWidget(int x, int y, int w, int h): Column(x, y, w, h){}
 
-public:
-    ListWidget(int x, int y, int w, int h): Widget(x, y, w, h) {
-        Column _col(x, y, w, h);
-        this->col = col;
-    }
+    void bindEvent(EventType event, std::function<void(ListItem *item)> callback);
 
-    void draw(Graphics &gfx, int offsetX = 0, int offsetY = 0) override;
-    void measureGeo(Graphics &gfx) override;
+    ListItem* getFocusedItem();
+    int getFocusedItemIndex();
 
-    void pushOffset(int offsetX, int offsetY);
-    void popOffset(int offsetX, int offsetY);
+    void clearFocus();
+    void focusItem(int index);
 
-    void focusItem(int itemIndex);
-
-    void bindEvent(EventType event, std::function<void()> callback) override;
+    void onCurrentItemChanged();
 };

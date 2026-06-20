@@ -1,6 +1,8 @@
 #include <Wire.h>
 #include <Adafruit_SH110X.h>
+
 #include "esp_timer.h"
+#include "esp_bt_main.h"
 
 #include "core/Stack.h"
 #include "core/Graphics.h"
@@ -9,12 +11,15 @@
 #include "layouts/Column.h"
 #include "layouts/Row.h"
 #include "widgets/Label.h"
+#include "core/Color.h"
 
 #define DISPLAY_WIDTH 128
 #define DISPLAY_HEIGHT 64
 
 #define SDA 8
 #define SCK 4
+
+Color white = {255, 255, 255};
 
 Adafruit_SH1106G oled = Adafruit_SH1106G(
   DISPLAY_WIDTH, 
@@ -36,16 +41,21 @@ Screen home_screen(
   &display,
   "Home"
 );
-Row root_layout(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT - 10);
-Row temp_container(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT - 10);
-Label itemp_label(20, 10, "Temp: ", {255, 255, 255});
-Label temp_val(10, 10, "0", {255, 255, 255});
+Column root_layout(0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT - 10);
+Row temp_container(0, 0, DISPLAY_WIDTH, 20);
+Row ble_container(40, 0, DISPLAY_WIDTH, 20);
+
+Label itemp_label(20, 10, "Temp: ", white);
+Label temp_val(10, 10, "0", white);
+
+Label ble_label(10, 10, "BLE Status: ", white);
+Label ble_stat(10, 10, "X", white);
 
 Screen error_screen(
   &display,
   "Error"
 );
-Label error_val(DISPLAY_WIDTH - 10, 10, "ERROR", {255, 255, 255});
+Label error_val(DISPLAY_WIDTH - 10, 10, "ERROR", white);
 
 char temp_buff[5];
 
@@ -71,6 +81,11 @@ void setup(){
 
   temp_container.addChild(&itemp_label);
   temp_container.addChild(&temp_val);
+
+  ble_container.addChild(&ble_label);
+  ble_container.addChild(&ble_stat);
+
+  root_layout.addChild(&ble_container);
   root_layout.addChild(&temp_container);
   home_screen.addChild(&root_layout);
 

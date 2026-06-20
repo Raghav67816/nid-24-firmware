@@ -1,16 +1,25 @@
 #pragma once
 
-#include "core/Widget.h"
+#include "core/Color.h"
 #include "widgets/Label.h"
 
-class ListItem: public Widget{
+class ListItem: public Label{
 
     private:
-    Label *label;
     bool isFocused = false;
+    
+    Color white = {255, 255, 255};
+    Color black = {0, 0, 0};
+
+    // void removeFocus();
 
     public:
-    ListItem(char* text){
-        label = &Label(20, 10, text, {255, 255, 255});
+    ListItem(char* text): Label(20, 10, text, {0, 0, 0}){
+        Color white = {255, 255, 255};
+        Label::setColor(white);
     }
+
+    void draw(Graphics &gfx, int offsetX = 0, int offsetY = 0) override;
+
+    void setFocused(bool isFocused);
 };
